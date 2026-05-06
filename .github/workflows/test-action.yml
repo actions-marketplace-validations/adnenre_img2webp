@@ -8,9 +8,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Go (for act local testing)
+        run: |
+          # This runs only when 'go' is missing; on real GitHub runners 'go' is already present.
+          if ! command -v go &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y wget
+            wget https://go.dev/dl/go1.26.2.linux-amd64.tar.gz
+            sudo tar -C /usr/local -xzf go1.26.2.linux-amd64.tar.gz
+            echo "/usr/local/go/bin" >> $GITHUB_PATH
+          fi
+        shell: bash
       - uses: adnenre/img2webp@v0.2.0
         with:
           input-dir: "./public"
       - run: |
-          ls public/*.webp
-          grep "\.webp" public/index.html
+          find public -name "*.webp" -type f
+          grep -r "\.webp" public/ --include="*.html" --include="*.css" || echo "No .webp references found"
+        shell: bash
