@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: adnenre/img2webp@main
+      - uses: adnenre/img2webp@v0.2.0
         with:
-          input-dir: "./sample"
+          input-dir: "./public"
       - run: |
-          ls sample/*.webp
-          grep "\.webp" sample/index.html
+          ls public/*.webp
+          grep "\.webp" public/index.html
