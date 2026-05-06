@@ -31,9 +31,9 @@ Designed for developers who care about **performance, compression, and automatio
 
 ## 📦 Installation
 
---codebash
+```bash
 go install github.com/adnenre/img2webp@latest
---code
+```
 
 **Requirements:**
 
@@ -47,9 +47,9 @@ go install github.com/adnenre/img2webp@latest
 
 ## 🧪 Quick Start
 
---codebash
+```bash
 img2webp --input ./public --quality 85 --replace
---code
+```
 
 This converts all images in `./public` and updates every reference inside that folder.
 
@@ -57,9 +57,9 @@ This converts all images in `./public` and updates every reference inside that f
 
 ## 🖥️ CLI Usage
 
---codebash
+```bash
 img2webp [flags]
---code
+```
 
 ---
 
@@ -79,25 +79,25 @@ img2webp [flags]
 
 ### Convert a folder (default)
 
---codebash
+```bash
 img2webp --input ./testdata --replace
---code
+```
 
 ---
 
 ### High quality conversion
 
---codebash
+```bash
 img2webp --input ./assets --q 90 --replace
---code
+```
 
 ---
 
 ### Dry run (preview changes only)
 
---codebash
+```bash
 img2webp --input ./public --dry-run
---code
+```
 
 ---
 
@@ -105,27 +105,27 @@ img2webp --input ./public --dry-run
 
 Before:
 
---codehtml
+```html
 <img src="images/photo.png" />
---code
+```
 
---codecss
+```css
 .hero {
-background-image: url("../img/bg.jpg");
+  background-image: url("../img/bg.jpg");
 }
---code
+```
 
 After running `img2webp`:
 
---codehtml
+```html
 <img src="images/photo.webp" />
---code
+```
 
---codecss
+```css
 .hero {
-background-image: url("../img/bg.webp");
+  background-image: url("../img/bg.webp");
 }
---code
+```
 
 All extensions are updated automatically.
 
@@ -142,7 +142,7 @@ All extensions are updated automatically.
 
 Add this to `.github/workflows/webp.yml`:
 
---codeyaml
+```yaml
 name: Optimize images to WebP
 
 on: [push, pull_request]
@@ -163,7 +163,7 @@ steps: - uses: actions/checkout@v4
       - name: Build project
         run: npm run build
 
---code
+```
 
 ---
 
