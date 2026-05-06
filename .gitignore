@@ -1,0 +1,12 @@
+# Binaries
+/img2webp
+*.exe
+*.test
+
+# Dependency files
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
