@@ -1,5 +1,10 @@
 # img2webp
 
+[![Test img2webp Action](https://github.com/adnenre/img2webp/actions/workflows/test-action.yml/badge.svg)](https://github.com/adnenre/img2webp/actions/workflows/test-action.yml)
+[![GitHub Action](https://img.shields.io/badge/GitHub%20Action-Convert%20to%20WebP-blue)](https://github.com/marketplace/actions/img2webp)
+[![Go Reference](https://pkg.go.dev/badge/github.com/adnenre/img2webp.svg)](https://pkg.go.dev/github.com/adnenre/img2webp)
+[![Marketplace](https://img.shields.io/badge/Marketplace-Install-blue?logo=github)](https://github.com/marketplace/actions/img2webp)
+
 A fast, lightweight CLI tool to **convert images to WebP and automatically update references** in HTML, CSS, JS, Markdown, and framework files (React, Vue, Angular).
 
 Designed for developers who care about **performance, compression, and automation**.
