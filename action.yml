@@ -1,9 +1,11 @@
 name: "img2webp"
 description: "Convert images to WebP and automatically update references in HTML, CSS, JS, MD"
 author: "Adnen Rebai"
+
 branding:
   icon: "image"
   color: "blue"
+
 inputs:
   input-dir:
     description: "Directory to scan for images"
@@ -29,11 +31,13 @@ inputs:
     description: "Preview changes without writing"
     required: false
     default: "false"
+
 runs:
   using: "composite"
   steps:
     - name: Install Go (if not present)
-      if: runner.os == 'ubuntu-latest'
+      if: runner.os == 'Linux'
+      shell: bash
       run: |
         if ! command -v go &> /dev/null; then
           sudo apt-get update
@@ -42,17 +46,20 @@ runs:
           sudo tar -C /usr/local -xzf go1.26.2.linux-amd64.tar.gz
           echo "/usr/local/go/bin" >> $GITHUB_PATH
         fi
-      shell: bash
+
     - name: Install img2webp CLI
-      run: go install github.com/adnenre/img2webp/v2@v2.0.0
       shell: bash
+      run: go install github.com/adnenre/img2webp/v2@v2.0.0
+
+    - name: Add Go bin to PATH
+      shell: bash
+      run: echo "$HOME/go/bin" >> $GITHUB_PATH
+
     - name: Run img2webp
+      shell: bash
       run: |
         img2webp \
           --input "${{ inputs.input-dir }}" \
-          --quality "${{ inputs.quality }}" \
-          --lossless "${{ inputs.lossless }}" \
-          --keep-original "${{ inputs.keep-original }}" \
-          --update-refs "${{ inputs.update-refs }}" \
+          --q "${{ inputs.quality }}" \
+          --replace "${{ inputs.update-refs }}" \
           --dry-run "${{ inputs.dry-run }}"
-      shell: bash
