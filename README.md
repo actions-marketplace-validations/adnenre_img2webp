@@ -31,11 +31,12 @@ Designed for developers who care about **performance, compression, and automatio
 
 ## 📦 Installation
 
-````bash
+```bash
 go install github.com/adnenre/img2webp@latest
---
+```
 
 **Requirements:**
+
 - Go 1.26.2+
 - `libwebp-dev` (Linux: `sudo apt-get install libwebp-dev`, macOS: `brew install libwebp`)
 - Windows: encoding not supported natively – use WSL or GitHub Action
@@ -46,7 +47,7 @@ go install github.com/adnenre/img2webp@latest
 
 ```bash
 img2webp --input ./public --quality 85
---
+```
 
 This converts all images in `./public` and updates every reference inside that folder.
 
@@ -56,21 +57,21 @@ This converts all images in `./public` and updates every reference inside that f
 
 ```bash
 img2webp [flags]
---
+```
 
 ---
 
 ## ⚙️ Flags
 
-| Flag                 | Default | Description                                      |
-|----------------------|---------|--------------------------------------------------|
-| `--input`            | `.`     | Root directory to scan                           |
-| `--quality`          | `75`    | WebP quality (0–100)                             |
-| `--lossless`         | `false` | Enable lossless compression                      |
-| `--keep-original`    | `false` | Keep original images after conversion            |
-| `--update-refs`      | `true`  | Rewrite image references in source files         |
-| `--dry-run`          | `false` | Preview changes without writing                  |
-| `--verbose`          | `false` | Print detailed logs                              |
+| Flag              | Default | Description                              |
+| ----------------- | ------- | ---------------------------------------- |
+| `--input`         | `.`     | Root directory to scan                   |
+| `--quality`       | `75`    | WebP quality (0–100)                     |
+| `--lossless`      | `false` | Enable lossless compression              |
+| `--keep-original` | `false` | Keep original images after conversion    |
+| `--update-refs`   | `true`  | Rewrite image references in source files |
+| `--dry-run`       | `false` | Preview changes without writing          |
+| `--verbose`       | `false` | Print detailed logs                      |
 
 ---
 
@@ -80,45 +81,53 @@ img2webp [flags]
 
 ```bash
 img2webp --input photo.jpg
---
+```
 
 ### Convert whole folder, keep originals
 
 ```bash
 img2webp --input ./images --keep-original true
---
+```
 
 ### High quality, lossless, dry-run preview
 
 ```bash
 img2webp --input ./assets --quality 95 --lossless --dry-run
---
+```
 
 ### Only rewrite references (no conversion)
 
 ```bash
 img2webp --input ./public --update-refs true --dry-run
---
+```
 
 ---
 
 ## 🔁 What “update references” means
 
 Before:
+
 ```html
-<img src="images/photo.png">
---
+<img src="images/photo.png" />
+```
+
 ```css
-.hero { background-image: url('../img/bg.jpg'); }
---
+.hero {
+  background-image: url("../img/bg.jpg");
+}
+```
 
 After running `img2webp`:
+
 ```html
-<img src="images/photo.webp">
---
+<img src="images/photo.webp" />
+```
+
 ```css
-.hero { background-image: url('../img/bg.webp'); }
---
+.hero {
+  background-image: url("../img/bg.webp");
+}
+```
 
 All extensions are updated automatically.
 
@@ -147,16 +156,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: adnenre/img2webp@v0.2.0
         with:
-          input-dir: './public'
-          quality: '85'
-          keep-original: 'false'
+          input-dir: "./public"
+          quality: "85"
+          keep-original: "false"
       - run: npm run build
---
+```
 
 **Inputs:**
 
 | Input           | Default | Description              |
-|-----------------|---------|--------------------------|
+| --------------- | ------- | ------------------------ |
 | `input-dir`     | `.`     | Directory to scan        |
 | `quality`       | `75`    | WebP quality             |
 | `lossless`      | `false` | Use lossless compression |
@@ -169,11 +178,11 @@ jobs:
 ## 🧠 Framework‑specific recommendations
 
 | Framework                  | Recommended `input-dir` |
-|----------------------------|--------------------------|
-| React (CRA, Vite, Next.js) | `./public`               |
-| Vue (Vue CLI, Vite)        | `./public`               |
-| Angular                    | `./src/assets`           |
-| Plain HTML/CSS             | `./` or `./images`       |
+| -------------------------- | ----------------------- |
+| React (CRA, Vite, Next.js) | `./public`              |
+| Vue (Vue CLI, Vite)        | `./public`              |
+| Angular                    | `./src/assets`          |
+| Plain HTML/CSS             | `./` or `./images`      |
 
 ---
 
@@ -230,4 +239,7 @@ If you find this project useful, give it a star ⭐
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.
-````
+
+```
+
+```
