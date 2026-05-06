@@ -1,4 +1,4 @@
-name: Test img2webp Action
+name: img2webp - Conversion Test (v2)
 
 on:
   push:
@@ -19,6 +19,9 @@ jobs:
 
       - name: Install img2webp
         run: go install github.com/adnenre/img2webp/v2@v2.0.0
+
+      - name: Add Go bin to PATH
+        run: echo "$HOME/go/bin" >> $GITHUB_PATH
 
       - name: Run image conversion
         run: |
