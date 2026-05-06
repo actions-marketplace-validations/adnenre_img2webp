@@ -2,9 +2,23 @@
 
 [![GitHub Action](https://img.shields.io/badge/GitHub%20Action-Convert%20to%20WebP-blue)](https://github.com/adnenre/img2webp)
 [![Go Reference](https://pkg.go.dev/badge/github.com/adnenre/img2webp.svg)](https://pkg.go.dev/github.com/adnenre/img2webp)
+[![Marketplace](https://img.shields.io/badge/Marketplace-Install-blue?logo=github)](https://github.com/marketplace/actions/img2webp)
 
-Convert images to WebP and automatically update references in HTML, CSS, JS, and Markdown files.  
+**Convert images to WebP and automatically update references in HTML, CSS, JS, and Markdown files.**  
 Perfect for static sites, React/Vue/Angular apps, or any project that wants to serve modern WebP images.
+
+## What this does for you (frontend developer)
+
+You have a project with `.png`, `.jpg`, `.jpeg` images. You want to serve **WebP** because it’s **30–70% smaller** – faster page loads, better Core Web Vitals, lower bandwidth.
+
+**Manual conversion and updating every `<img src="...">` is a nightmare.** This tool automates it:
+
+- Scans your project folder (e.g., `public/`, `src/assets/`).
+- Converts every PNG/JPEG to WebP (same filename, just `.webp`).
+- Finds all references to those images inside `.html`, `.css`, `.js`, `.jsx`, `.tsx`, `.vue`, `.md` files and **replaces the extension** (`.png` → `.webp`).
+- Optionally deletes the original heavy images.
+
+**Result:** Your site serves WebP images automatically – no code changes, no manual work.
 
 > **Note:** Full WebP conversion (using CGO + libwebp) works on **Linux** and **macOS**.  
 > On Windows, the tool can still **rewrite file references** (HTML/CSS/JS) but **cannot encode WebP** unless you use WSL or the GitHub Action (which runs on Ubuntu).  
@@ -69,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: adnenre/img2webp@v1
+      - uses: adnenre/img2webp@v0.2.0
         with:
           input-dir: './public'      # change to your image folder
           quality: '85'
@@ -77,6 +91,8 @@ jobs:
       # Now build/deploy your site – it will use the new .webp files
       - run: npm run build
 ```
+
+> 💡 **Tip:** You can also use `@v1` if you re‑create the `v1` tag pointing to the latest stable version.
 
 #### Inputs
 
@@ -136,7 +152,7 @@ jobs:
         with:
           node-version: 20
       - name: Convert images to WebP
-        uses: adnenre/img2webp@v1
+        uses: adnenre/img2webp@v0.2.0
         with:
           input-dir: './public'
           quality: '85'
@@ -158,6 +174,14 @@ jobs:
 
 Errors during conversion are logged but do **not** stop the entire process – other images and files continue.
 
+## Why you should use it
+
+- ✅ **No runtime conversion** – convert once during CI/build, not on every request.
+- ✅ **Zero configuration** – just point to your image folder.
+- ✅ **Works with any framework** – React, Vue, Angular, plain HTML/CSS, static site generators.
+- ✅ **Works in GitHub Actions** – you add one line to your workflow and forget.
+- ✅ **Safe** – dry‑run mode, keeps originals if you want, errors don’t break your build.
+
 ## Development
 
 If you want to build from source:
@@ -177,3 +201,4 @@ MIT
 ## Author
 
 Adnen Rebai
+website : https://adnenre.dev/about/
