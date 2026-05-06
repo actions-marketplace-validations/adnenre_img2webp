@@ -1,152 +1,177 @@
-// Package main provides a CLI tool to convert images to WebP and update file references.
-// It uses libwebp via CGO for encoding and supports HTML, CSS, JS, Markdown, and more.
 package main
 
 import (
-    "bytes"
-    "flag"
-    "fmt"
-    "image"
-    _ "image/jpeg"
-    _ "image/png"
-    "os"
-    "path/filepath"
-    "strings"
+	"bytes"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
 
-    "github.com/adnenre/img2webp/convert"
-    "github.com/adnenre/img2webp/rewrite"
-    "github.com/adnenre/img2webp/walk"
+	"github.com/adnenre/img2webp/walk"
+	"flag"
 )
+
+// -------------------------
+// FLAG NORMALIZER (IMPORTANT)
+// -------------------------
+func normalizeArgs() {
+	for i, arg := range os.Args {
+		if strings.HasPrefix(arg, "--") {
+			os.Args[i] = "-" + strings.TrimPrefix(arg, "--")
+		}
+	}
+}
 
 var (
-    inputDir     = flag.String("input", ".", "Root directory to scan")
-    quality      = flag.Float64("quality", 75, "WebP quality (0-100)")
-    lossless     = flag.Bool("lossless", false, "Use lossless compression")
-    keepOriginal = flag.Bool("keep-original", false, "Do not delete original images")
-    updateRefs   = flag.Bool("update-refs", true, "Rewrite references in source files")
-    dryRun       = flag.Bool("dry-run", false, "Only simulate changes")
-    verbose      = flag.Bool("verbose", false, "Print detailed logs")
+	inputDir = flag.String("input", ".", "project root")
+	quality  = flag.Int("q", 75, "webp quality")
+	replace  = flag.String("replace", "true", "replace references in files")
+	dryRun   = flag.String("dry-run", "false", "preview only")
+	verbose  = flag.String("v", "false", "verbose")
 )
 
-var imageExts = []string{".png", ".jpg", ".jpeg"}
+type ImageMap struct {
+	Old string
+	New string
+}
+
+func parseBool(v string) bool {
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		return false
+	}
+	return b
+}
 
 func main() {
-    flag.Parse()
 
-    // Clean and validate input directory
-    dir := filepath.Clean(*inputDir)
-    info, err := os.Stat(dir)
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "Error: input directory '%s' does not exist\n", dir)
-        os.Exit(1)
-    }
-    if !info.IsDir() {
-        fmt.Fprintf(os.Stderr, "Error: '%s' is not a directory\n", dir)
-        os.Exit(1)
-    }
+	// 🔥 FIX: allow --flags support
+	normalizeArgs()
 
-    if *verbose {
-        fmt.Println("img2webp starting...")
-        fmt.Printf("Scanning directory: %s\n", dir)
-    }
+	flag.Parse()
 
-    stats := struct {
-        converted, deleted, rewritten int
-    }{}
+	root := filepath.Clean(*inputDir)
 
-    visitor := walk.Visitor{
-        OnImage: func(imgPath string) error {
-            webpPath := strings.TrimSuffix(imgPath, filepath.Ext(imgPath)) + ".webp"
-            if *verbose {
-                fmt.Printf("Converting: %s -> %s\n", imgPath, webpPath)
-            }
-            if !*dryRun {
-                if err := convertImage(imgPath, webpPath); err != nil {
-                    // Log error but continue processing other files
-                    fmt.Fprintf(os.Stderr, "Warning: %s\n", err)
-                    return nil // continue walking
-                }
-                stats.converted++
-                if !*keepOriginal {
-                    if err := os.Remove(imgPath); err != nil {
-                        fmt.Fprintf(os.Stderr, "Warning: failed to remove %s: %v\n", imgPath, err)
-                        return nil
-                    }
-                    stats.deleted++
-                }
-            }
-            return nil
-        },
-        OnSource: func(srcPath string) error {
-            if !*updateRefs {
-                return nil
-            }
-            if *verbose {
-                fmt.Printf("Rewriting: %s\n", srcPath)
-            }
-            if !*dryRun {
-                if err := rewriteFile(srcPath); err != nil {
-                    fmt.Fprintf(os.Stderr, "Warning: failed to rewrite %s: %v\n", srcPath, err)
-                    return nil
-                }
-                stats.rewritten++
-            }
-            return nil
-        },
-    }
+	doReplace := parseBool(*replace)
+	isDryRun := parseBool(*dryRun)
+	isVerbose := parseBool(*verbose)
 
-    if err := walk.Walk(dir, visitor); err != nil {
-        fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-        os.Exit(1)
-    }
+	var images []ImageMap
 
-    fmt.Printf("Done. Converted: %d, Deleted originals: %d, Rewritten source files: %d\n",
-        stats.converted, stats.deleted, stats.rewritten)
+	// -------------------------
+	// 1. CONVERT IMAGES
+	// -------------------------
+	walk.Walk(root, walk.Visitor{
+		OnFile: func(path string) error {
+
+			if !walk.IsImage(path) {
+				return nil
+			}
+
+			ext := filepath.Ext(path)
+			output := strings.TrimSuffix(path, ext) + ".webp"
+
+			if isVerbose {
+				fmt.Println("convert:", path, "->", output)
+			}
+
+			_ = os.MkdirAll(filepath.Dir(output), 0755)
+
+			if !isDryRun {
+				if err := convert(path, output); err != nil {
+					fmt.Println("conversion failed:", err)
+					return nil
+				}
+
+				if _, err := os.Stat(output); err != nil {
+					fmt.Println("missing output, skip delete:", path)
+					return nil
+				}
+
+				_ = os.Remove(path)
+			}
+
+			images = append(images, ImageMap{
+				Old: filepath.Base(path),
+				New: strings.TrimSuffix(filepath.Base(path), ext) + ".webp",
+			})
+
+			return nil
+		},
+	})
+
+	if len(images) == 0 {
+		fmt.Println("no images found")
+		return
+	}
+
+	// -------------------------
+	// 2. REPLACE REFERENCES
+	// -------------------------
+	if doReplace {
+
+		walk.Walk(root, walk.Visitor{
+			OnFile: func(path string) error {
+
+				if walk.IsImage(path) {
+					return nil
+				}
+
+				data, err := os.ReadFile(path)
+				if err != nil {
+					return nil
+				}
+
+				content := string(data)
+				original := content
+
+				for _, img := range images {
+					content = strings.ReplaceAll(content, img.Old, img.New)
+				}
+
+				if content == original {
+					return nil
+				}
+
+				if isDryRun {
+					fmt.Println("[dry-run] would update:", path)
+					return nil
+				}
+
+				if isVerbose {
+					fmt.Println("updated:", path)
+				}
+
+				return os.WriteFile(path, []byte(content), 0644)
+			},
+		})
+	}
+
+	fmt.Println("done ✔")
 }
 
-func convertImage(src, dst string) error {
-    f, err := os.Open(src)
-    if err != nil {
-        return err
-    }
-    defer f.Close()
-    img, _, err := image.Decode(f)
-    if err != nil {
-        return err
-    }
-    opts := convert.EncodeOptions{
-        Quality:  float32(*quality),
-        Lossless: *lossless,
-    }
-    data, err := convert.EncodeWebP(img, opts)
-    if err != nil {
-        return err
-    }
-    return os.WriteFile(dst, data, 0644)
-}
+// -------------------------
+// CWEBP CONVERTER
+// -------------------------
+func convert(src, dst string) error {
 
-func rewriteFile(path string) error {
-    data, err := os.ReadFile(path)
-    if err != nil {
-        return err
-    }
-    ext := strings.ToLower(filepath.Ext(path))
-    var newData []byte
-    var rewriteErr error
+	args := []string{
+		src,
+		"-o", dst,
+		"-q", fmt.Sprintf("%d", *quality),
+	}
 
-    switch ext {
-    case ".html", ".htm":
-        newData, rewriteErr = rewrite.ReplaceExtensionsInHTML(data, imageExts, ".webp")
-    case ".css":
-        newData = rewrite.ReplaceExtensionsInCSS(data, imageExts, ".webp")
-    default:
-        newData = rewrite.ReplaceExtensionsInText(data, imageExts, ".webp")
-    }
-    if rewriteErr != nil {
-        return rewriteErr
-    }
-    if !bytes.Equal(data, newData) {
-        return os.WriteFile(path, newData, 0644)
-    }
-    return nil
+	cmd := exec.Command("cwebp", args...)
+
+	var out bytes.Buffer
+	cmd.Stderr = &out
+
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("%v: %s", err, out.String())
+	}
+
+	return nil
 }

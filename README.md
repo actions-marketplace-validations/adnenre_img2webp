@@ -8,13 +8,13 @@ Designed for developers who care about **performance, compression, and automatio
 
 ## 🚀 Features
 
-- Convert JPEG/PNG to WebP (Google’s `libwebp`)
+- Convert JPEG/PNG to WebP (Google’s `cwebp`)
 - **Automatically rewrite image references** – `.png` → `.webp` inside `.html`, `.css`, `.js`, `.md`, `.jsx`, `.tsx`, `.vue`
 - Batch process entire folders
 - Adjustable quality & lossless mode
 - Keep or delete original images
-- GitHub Action ready – zero‑config CI/CD
-- CLI‑first, fast, minimal dependencies
+- GitHub Action ready – zero-config CI/CD
+- CLI-first, fast, minimal dependencies
 
 ---
 
@@ -31,23 +31,25 @@ Designed for developers who care about **performance, compression, and automatio
 
 ## 📦 Installation
 
-```bash
+--codebash
 go install github.com/adnenre/img2webp@latest
-```
+--code
 
 **Requirements:**
 
 - Go 1.26.2+
-- `libwebp-dev` (Linux: `sudo apt-get install libwebp-dev`, macOS: `brew install libwebp`)
-- Windows: encoding not supported natively – use WSL or GitHub Action
+- `cwebp` (WebP tools)
+  - Linux: `sudo apt-get install webp`
+  - macOS: `brew install webp`
+  - Windows: install WebP tools or use WSL
 
 ---
 
 ## 🧪 Quick Start
 
-```bash
-img2webp --input ./public --quality 85
-```
+--codebash
+img2webp --input ./public --quality 85 --replace
+--code
 
 This converts all images in `./public` and updates every reference inside that folder.
 
@@ -55,79 +57,75 @@ This converts all images in `./public` and updates every reference inside that f
 
 ## 🖥️ CLI Usage
 
-```bash
+--codebash
 img2webp [flags]
-```
+--code
 
 ---
 
 ## ⚙️ Flags
 
-| Flag              | Default | Description                              |
-| ----------------- | ------- | ---------------------------------------- |
-| `--input`         | `.`     | Root directory to scan                   |
-| `--quality`       | `75`    | WebP quality (0–100)                     |
-| `--lossless`      | `false` | Enable lossless compression              |
-| `--keep-original` | `false` | Keep original images after conversion    |
-| `--update-refs`   | `true`  | Rewrite image references in source files |
-| `--dry-run`       | `false` | Preview changes without writing          |
-| `--verbose`       | `false` | Print detailed logs                      |
+| Flag        | Default | Description                              |
+| ----------- | ------- | ---------------------------------------- |
+| `--input`   | `.`     | Root directory to scan                   |
+| `--q`       | `75`    | WebP quality (0–100)                     |
+| `--replace` | `true`  | Rewrite image references in source files |
+| `--dry-run` | `false` | Preview changes without writing          |
+| `--v`       | `false` | Print detailed logs                      |
 
 ---
 
 ## 📌 Examples
 
-### Convert a single image (basic)
+### Convert a folder (default)
 
-```bash
-img2webp --input photo.jpg
-```
-
-### Convert whole folder, keep originals
-
-```bash
-img2webp --input ./images --keep-original true
-```
-
-### High quality, lossless, dry-run preview
-
-```bash
-img2webp --input ./assets --quality 95 --lossless --dry-run
-```
-
-### Only rewrite references (no conversion)
-
-```bash
-img2webp --input ./public --update-refs true --dry-run
-```
+--codebash
+img2webp --input ./testdata --replace
+--code
 
 ---
 
-## 🔁 What “update references” means
+### High quality conversion
+
+--codebash
+img2webp --input ./assets --q 90 --replace
+--code
+
+---
+
+### Dry run (preview changes only)
+
+--codebash
+img2webp --input ./public --dry-run
+--code
+
+---
+
+## 🔁 What “replace” means
 
 Before:
 
-```html
+--codehtml
 <img src="images/photo.png" />
-```
+--code
 
-```css
+--codecss
 .hero {
-  background-image: url("../img/bg.jpg");
+background-image: url("../img/bg.jpg");
 }
-```
+--code
 
 After running `img2webp`:
 
-```html
+--codehtml
 <img src="images/photo.webp" />
-```
+--code
 
-```css
+--codecss
 .hero {
-  background-image: url("../img/bg.webp");
+background-image: url("../img/bg.webp");
 }
-```
+--code
 
 All extensions are updated automatically.
 
@@ -135,8 +133,8 @@ All extensions are updated automatically.
 
 ## 📁 Supported Formats
 
-- Input: JPEG (`.jpg`, `.jpeg`), PNG (`.png`)
-- Output: WebP (`.webp`)
+- Input: `.jpg`, `.jpeg`, `.png`
+- Output: `.webp`
 
 ---
 
@@ -144,83 +142,75 @@ All extensions are updated automatically.
 
 Add this to `.github/workflows/webp.yml`:
 
-```yaml
+--codeyaml
 name: Optimize images to WebP
 
 on: [push, pull_request]
 
 jobs:
-  convert:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: adnenre/img2webp@v0.2.0
-        with:
-          input-dir: "./public"
-          quality: "85"
-          keep-original: "false"
-      - run: npm run build
-```
+convert:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v4
 
-**Inputs:**
+      - name: Install webp tools
+        run: sudo apt-get install webp -y
 
-| Input           | Default | Description              |
-| --------------- | ------- | ------------------------ |
-| `input-dir`     | `.`     | Directory to scan        |
-| `quality`       | `75`    | WebP quality             |
-| `lossless`      | `false` | Use lossless compression |
-| `keep-original` | `false` | Keep original images     |
-| `update-refs`   | `true`  | Rewrite references       |
-| `dry-run`       | `false` | Simulate only            |
+      - name: Run img2webp
+        run: |
+          go install github.com/adnenre/img2webp@latest
+          img2webp --input ./public --q 85 --replace
+
+      - name: Build project
+        run: npm run build
+
+--code
 
 ---
 
-## 🧠 Framework‑specific recommendations
+## 🧠 Framework Recommendations
 
-| Framework                  | Recommended `input-dir` |
-| -------------------------- | ----------------------- |
-| React (CRA, Vite, Next.js) | `./public`              |
-| Vue (Vue CLI, Vite)        | `./public`              |
-| Angular                    | `./src/assets`          |
-| Plain HTML/CSS             | `./` or `./images`      |
+| Framework          | Recommended `--input` |
+| ------------------ | --------------------- |
+| React (Vite / CRA) | `./public`            |
+| Vue                | `./public`            |
+| Angular            | `./src/assets`        |
+| Plain HTML/CSS     | `./` or `./images`    |
 
 ---
 
 ## 📊 Performance Notes
 
-- WebP reduces file size by **30–70%** vs JPEG/PNG
+- WebP reduces file size by **30–70%**
 - Higher quality = larger file size
-- Lossless preserves data but may increase size
+- `--q 75` is recommended default balance
 
 ---
 
 ## 🛠️ Roadmap
 
-- [ ] GIF support
-- [ ] Web interface
-- [ ] Advanced compression presets
-- [ ] Benchmark reports
+- [ ] CSS url() advanced parser
+- [ ] React/Angular AST support
+- [ ] Backup & rollback mode
+- [ ] Parallel conversion
+- [ ] Plugin system
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome!
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a pull request
+1. Fork repo
+2. Create feature branch
+3. Commit changes
+4. Open PR
 
 ---
 
 ## 👨‍💻 Author
 
 **Adnen Rebai**
-Software Engineer | Open Source Enthusiast | Performance-focused tools
 
-- 🌐 Website: [adnenre.dev](https://adnenre.dev)
-- 🐙 GitHub: [adnenre](https://github.com/adnenre)
+- 🌐 Website: https://adnenre.dev
+- 🐙 GitHub: https://github.com/adnenre
 
 ---
 
@@ -238,8 +228,4 @@ If you find this project useful, give it a star ⭐
 
 ## 📄 License
 
-MIT License. See [LICENSE](LICENSE) for details.
-
-```
-
-```
+MIT License. See `LICENSE` for details.

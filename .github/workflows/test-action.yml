@@ -6,23 +6,34 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      - name: Install Go (for act local testing)
-        run: |
-          # This runs only when 'go' is missing; on real GitHub runners 'go' is already present.
-          if ! command -v go &> /dev/null; then
-            sudo apt-get update
-            sudo apt-get install -y wget
-            wget https://go.dev/dl/go1.26.2.linux-amd64.tar.gz
-            sudo tar -C /usr/local -xzf go1.26.2.linux-amd64.tar.gz
-            echo "/usr/local/go/bin" >> $GITHUB_PATH
-          fi
-        shell: bash
-      - uses: adnenre/img2webp@v0.2.0
+
+      - uses: actions/setup-go@v5
         with:
-          input-dir: "./public"
-      - run: |
-          find public -name "*.webp" -type f
-          grep -r "\.webp" public/ --include="*.html" --include="*.css" || echo "No .webp references found"
-        shell: bash
+          go-version: "1.22"
+
+      - name: Install img2webp
+        run: go install github.com/adnenre/img2webp@latest
+
+      - name: Run conversion
+        run: |
+          img2webp \
+            --input "./public" \
+            --q "85" \
+            --replace "true"
+
+      - name: Verify WebP files exist
+        run: |
+          if ! find public -name "*.webp" | grep .; then
+            echo "❌ No WebP files generated"
+            exit 1
+          fi
+
+      - name: Verify references updated
+        run: |
+          if grep -r "\.png\|\.jpg\|\.jpeg" public --include="*.html" --include="*.css"; then
+            echo "❌ Old image references still exist"
+            exit 1
+          fi
