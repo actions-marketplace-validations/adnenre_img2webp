@@ -1,3 +1,5 @@
+// Package main provides a CLI tool to convert images to WebP and update file references.
+// It uses libwebp via CGO for encoding and supports HTML, CSS, JS, Markdown, and more.
 package main
 
 import (

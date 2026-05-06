@@ -6,6 +6,10 @@
 Convert images to WebP and automatically update references in HTML, CSS, JS, and Markdown files.  
 Perfect for static sites, React/Vue/Angular apps, or any project that wants to serve modern WebP images.
 
+> **Note:** Full WebP conversion (using CGO + libwebp) works on **Linux** and **macOS**.  
+> On Windows, the tool can still **rewrite file references** (HTML/CSS/JS) but **cannot encode WebP** unless you use WSL or the GitHub Action (which runs on Ubuntu).  
+> **For CI/CD, the GitHub Action runs on Ubuntu and works flawlessly.**
+
 ## Features
 
 - 🖼️ Converts `.png`, `.jpg`, `.jpeg` → `.webp` (using Google's `libwebp` via CGO)
@@ -20,7 +24,8 @@ Perfect for static sites, React/Vue/Angular apps, or any project that wants to s
 - **libwebp-dev** (system library)  
   Install on Ubuntu/Debian: `sudo apt-get install libwebp-dev`  
   Install on macOS: `brew install libwebp`  
-  Not required when using the GitHub Action – it installs automatically on Ubuntu runners.
+  Not required when using the GitHub Action – it installs automatically on Ubuntu runners.  
+  **Windows is not supported for encoding** – use WSL or rely on the GitHub Action.
 
 ## Usage
 
@@ -28,15 +33,15 @@ Perfect for static sites, React/Vue/Angular apps, or any project that wants to s
 
 Install globally:
 
---code
+```bash
 go install github.com/adnenre/img2webp@latest
---code
+```
 
 Then run:
 
---code
+```bash
 img2webp --input ./public --quality 85 --keep-original false
---code
+```
 
 All flags:
 
@@ -54,20 +59,24 @@ All flags:
 
 Add this to your `.github/workflows/webp.yml`:
 
---code
+```
 name: Optimize images to WebP
 
 on: [push, pull_request]
 
 jobs:
-convert:
-runs-on: ubuntu-latest
-steps: - uses: actions/checkout@v4 - uses: adnenre/img2webp@v1
-with:
-input-dir: './public' # change to your image folder
-quality: '85'
-keep-original: 'false' # Now build/deploy your site – it will use the new .webp files - run: npm run build
---code
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: adnenre/img2webp@v1
+        with:
+          input-dir: './public'      # change to your image folder
+          quality: '85'
+          keep-original: 'false'
+      # Now build/deploy your site – it will use the new .webp files
+      - run: npm run build
+```
 
 #### Inputs
 
@@ -82,22 +91,21 @@ keep-original: 'false' # Now build/deploy your site – it will use the new .web
 
 ### 3. As a Go library
 
---code
+```
 import "github.com/adnenre/img2webp/convert"
 
 func main() {
-img, _ := os.Open("photo.png")
-defer img.Close()
-src, _, \_ := image.Decode(img)
+    img, _ := os.Open("photo.png")
+    defer img.Close()
+    src, _, _ := image.Decode(img)
 
     data, _ := convert.EncodeWebP(src, convert.EncodeOptions{
         Quality:  85,
         Lossless: false,
     })
     os.WriteFile("photo.webp", data, 0644)
-
 }
---code
+```
 
 ## Framework‑specific recommendations
 
@@ -112,28 +120,34 @@ src, _, \_ := image.Decode(img)
 
 ## Example: full CI pipeline
 
---code
+```
 name: Build and deploy with WebP
 
 on:
-push:
-branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-build:
-runs-on: ubuntu-latest
-steps: - uses: actions/checkout@v4 - uses: actions/setup-node@v4
-with:
-node-version: 20 - name: Convert images to WebP
-uses: adnenre/img2webp@v1
-with:
-input-dir: './public'
-quality: '85' - run: npm ci - run: npm run build - name: Deploy
-uses: peaceiris/actions-gh-pages@v3
-with:
-github_token: ${{ secrets.GITHUB_TOKEN }}
-publish_dir: ./build
---code
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Convert images to WebP
+        uses: adnenre/img2webp@v1
+        with:
+          input-dir: './public'
+          quality: '85'
+      - run: npm ci
+      - run: npm run build
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+```
 
 ## How it works
 
@@ -148,15 +162,13 @@ Errors during conversion are logged but do **not** stop the entire process – o
 
 If you want to build from source:
 
---code
+```bash
 git clone https://github.com/adnenre/img2webp.git
 cd img2webp
-
 # Install libwebp-dev (see Requirements)
-
 go build -o img2webp .
 ./img2webp --help
---code
+```
 
 ## License
 
@@ -165,4 +177,3 @@ MIT
 ## Author
 
 Adnen Rebai
-website : https://adnenre.dev
