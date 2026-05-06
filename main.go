@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/adnenre/img2webp/walk"
+	"github.com/adnenre/img2webp/v2/walk"
 	"flag"
 )
 

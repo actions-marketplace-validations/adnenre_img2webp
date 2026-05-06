@@ -1,4 +1,4 @@
-module github.com/adnenre/img2webp
+module github.com/adnenre/img2webp/v2
 
 go 1.26
 
