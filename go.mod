@@ -1,3 +1,5 @@
-module github.com/yourusername/img2webp
+module github.com/adnenre/img2webp
 
-go 1.26.2
+go 1.26
+
+require golang.org/x/net v0.53.0

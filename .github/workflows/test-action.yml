@@ -1,0 +1,16 @@
+name: Test img2webp Action
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: adnenre/img2webp@main
+        with:
+          input-dir: "./sample"
+      - run: |
+          ls sample/*.webp
+          grep "\.webp" sample/index.html

@@ -1,0 +1,15 @@
+name: Optimize Images with WebP
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: adnenre/img2webp@v1
+        with:
+          input-dir: "./public"
+          quality: "85"

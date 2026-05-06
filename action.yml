@@ -1,0 +1,44 @@
+# action.yml
+name: "Convert Images to WebP"
+description: "Convert PNG/JPEG images to WebP and update references in source files"
+inputs:
+  input-dir:
+    description: "Directory to scan recursively"
+    required: false
+    default: "."
+  quality:
+    description: "WebP quality (0-100)"
+    required: false
+    default: "75"
+  lossless:
+    description: "Use lossless compression (true/false)"
+    required: false
+    default: "false"
+  keep-original:
+    description: "Keep original image files (true/false)"
+    required: false
+    default: "false"
+  update-refs:
+    description: "Rewrite references in source files (true/false)"
+    required: false
+    default: "true"
+  dry-run:
+    description: "Only simulate, do not write changes (true/false)"
+    required: false
+    default: "false"
+runs:
+  using: "composite"
+  steps:
+    - name: Install libwebp
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y libwebp-dev
+    - name: Run img2webp
+      shell: bash
+      run: |
+        go run github.com/adnenre/img2webp@latest \
+          --input "${{ inputs.input-dir }}" \
+          --quality "${{ inputs.quality }}" \
+          --lossless "${{ inputs.lossless }}" \
+          --keep-original "${{ inputs.keep-original }}" \
+          --update-refs "${{ inputs.update-refs }}" \
+          --dry-run "${{ inputs.dry-run }}"

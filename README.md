@@ -3,6 +3,7 @@
 Convert images to WebP and automatically update references in HTML, CSS, JS, and Markdown files.
 
 ## Features
+
 - Recursively scans a directory
 - Converts .png, .jpg, .jpeg to WebP using libwebp (CGO)
 - Rewrites image paths in source files
@@ -10,6 +11,7 @@ Convert images to WebP and automatically update references in HTML, CSS, JS, and
 - Ready for GitHub Actions
 
 ## Installation
+
 ```
-go install github.com/yourusername/img2webp@latest
+go install github.com/adnenre/img2webp@latest
 ```
