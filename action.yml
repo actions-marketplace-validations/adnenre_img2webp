@@ -44,7 +44,7 @@ runs:
         fi
       shell: bash
     - name: Install img2webp CLI
-      run: go install github.com/adnenre/img2webp@latest
+      run: go install github.com/adnenre/img2webp/v2@v2.0.0
       shell: bash
     - name: Run img2webp
       run: |

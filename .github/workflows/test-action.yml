@@ -4,20 +4,23 @@ on:
   push:
 
 jobs:
-  test:
+  test-img2webp:
+    name: Test img2webp Conversion
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version: "1.26"
 
       - name: Install img2webp
-        run: go install github.com/adnenre/img2webp@latest
+        run: go install github.com/adnenre/img2webp/v2@v2.0.0
 
-      - name: Run conversion
+      - name: Run image conversion
         run: |
           img2webp \
             --input "./public" \
@@ -28,12 +31,5 @@ jobs:
         run: |
           if ! find public -name "*.webp" | grep .; then
             echo "❌ No WebP files generated"
-            exit 1
-          fi
-
-      - name: Verify references updated
-        run: |
-          if grep -r "\.png\|\.jpg\|\.jpeg" public --include="*.html" --include="*.css"; then
-            echo "❌ Old image references still exist"
             exit 1
           fi

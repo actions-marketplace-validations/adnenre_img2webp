@@ -15,7 +15,7 @@ jobs:
           go-version: "1.26"
 
       - name: Install img2webp
-        run: go install github.com/adnenre/img2webp@latest
+        run: go install github.com/adnenre/img2webp/v2@v2.0.0
 
       - name: Run img2webp
         run: |
