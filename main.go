@@ -31,8 +31,21 @@ var imageExts = []string{".png", ".jpg", ".jpeg"}
 func main() {
     flag.Parse()
 
+    // Clean and validate input directory
+    dir := filepath.Clean(*inputDir)
+    info, err := os.Stat(dir)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error: input directory '%s' does not exist\n", dir)
+        os.Exit(1)
+    }
+    if !info.IsDir() {
+        fmt.Fprintf(os.Stderr, "Error: '%s' is not a directory\n", dir)
+        os.Exit(1)
+    }
+
     if *verbose {
         fmt.Println("img2webp starting...")
+        fmt.Printf("Scanning directory: %s\n", dir)
     }
 
     stats := struct {
@@ -80,7 +93,7 @@ func main() {
         },
     }
 
-    if err := walk.Walk(*inputDir, visitor); err != nil {
+    if err := walk.Walk(dir, visitor); err != nil {
         fmt.Fprintf(os.Stderr, "Error: %v\n", err)
         os.Exit(1)
     }
